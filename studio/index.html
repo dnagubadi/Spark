@@ -80,8 +80,8 @@ body.on-ask .bar .btn { background: rgba(255,255,255,.85); }
 @keyframes rise { to { opacity: 1; transform: none; } }
 #ask-h .word { display: inline-block; }
 .ask-form { display: grid; gap: 22px; justify-items: center; width: 100%; }
-.topic-wrap { position: relative; width: 100%; }
-.topic-input { width: 100%; min-height: 80px; border: 3px solid var(--navy); border-radius: 22px; background: var(--white); padding: 12px 24px; font-size: 1.6rem; text-align: center;
+.topic-wrap { position: relative; width: min(520px, 100%); }
+.topic-input { width: 100%; min-height: 60px; border: 3px solid var(--navy); border-radius: 18px; background: var(--white); padding: 8px 20px; font-size: 1.35rem; text-align: center;
   transition: box-shadow .25s, transform .25s; }
 .topic-input:focus { outline: none; box-shadow: 0 0 0 6px rgba(47,111,237,.35); }
 .topic-input::placeholder { color: #7A869C; }
