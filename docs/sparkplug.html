@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sparkplug model · Spark</title>
+    <meta name="description" content="The Sparkplug controller model: renders, size and hole dimensions." />
+    <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap"
+    />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/docs.css" />
+    <link rel="stylesheet" href="css/page.css" />
+    <script src="js/docs.js" defer></script>
+    <!-- ================= Header (same on every page) ================= -->
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="./" aria-label="Spark home">
+          <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M4 30a28 28 0 0 1 56 0z" fill="#ff6d00" />
+            <path d="M4 34a28 28 0 0 0 56 0z" fill="#0077b6" />
+            <path d="M32 22l2.6 7.4L42 32l-7.4 2.6L32 42l-2.6-7.4L22 32l7.4-2.6z" fill="#ffd166" stroke="#03045e" stroke-width="2.5" stroke-linejoin="round" />
+          </svg>
+          <span>Spark</span>
+        </a>
+        <a class="btn btn--ghost" href="./">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+          Back to the docs
+        </a>
+      </div>
+    </header>
+
+    <main id="main">
+      <header class="docs-hero">
+        <div class="container">
+          <p class="eyebrow"><span class="hemi-dot" aria-hidden="true"></span> Sparkplug model</p>
+          <h1>The Sparkplug</h1>
+          <p class="lead">The controller you hold to explore your Spark: a joystick, 3 knobs, 4 buttons and a big Ignite dome.</p>
+        </div>
+      </header>
+
+      <div class="container page-body">
+        <section class="model" aria-labelledby="model-title">
+          <h2 id="model-title" class="visually-hidden">Model preview</h2>
+          <div class="model__stage">
+            <img class="model__still" src="images/sparkplug-3q.webp" width="1200" height="750"
+                 alt="The Sparkplug controller: a rounded cream box with a joystick on the left, three blue knobs along the back, a big orange half-sphere Ignite button in the middle, and four navy buttons on the right." />
+          </div>
+          <figure class="model__top">
+            <img src="images/sparkplug-top.webp" width="1200" height="750" loading="lazy"
+                 alt="Top view of the Sparkplug layout: joystick on the left, three knobs in a row at the back, Ignite in the centre, and four buttons in a square on the right." />
+            <figcaption>Top view. Joystick left, knobs along the back, Ignite in the middle, four buttons right.</figcaption>
+          </figure>
+        </section>
+
+        <!-- Copy lives in content/pages/sparkplug-model.md -->
+        <article class="prose page-prose" data-heading-level="2" data-doc="content/pages/sparkplug-model.md"><p class="prose__loading">Loading…</p></article>
+        <p class="docs-back"><a class="btn btn--secondary" href="./#sparkplug">Back to Sparkplug</a></p>
+      </div>
+    </main>
+
+    <!-- ================= Footer (same on every page) ================= -->
+    <footer class="site-footer on-inverse">
+      <div class="container">
+        <div class="site-footer__inner">
+          <div>
+            <a class="brand" href="./" aria-label="Spark home">
+              <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+                <path d="M4 30a28 28 0 0 1 56 0z" fill="#ff8500" />
+                <path d="M4 34a28 28 0 0 0 56 0z" fill="#00b4d8" />
+                <path d="M32 22l2.6 7.4L42 32l-7.4 2.6L32 42l-2.6-7.4L22 32l7.4-2.6z" fill="#ffd166" stroke="#03045e" stroke-width="2.5" stroke-linejoin="round" />
+              </svg>
+              <span>Spark</span>
+            </a>
+            <p class="site-footer__blurb">A senior capstone project by Declan.</p>
+          </div>
+        </div>
+        <p class="site-footer__legal">Spark is a work in progress, building toward the spring expo.</p>
+      </div>
+    </footer>
+  </body>
+</html>
