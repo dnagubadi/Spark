@@ -50,19 +50,58 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 main { max-width: 1280px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .view { display: grid; gap: 24px; }
 
-/* ask */
-#view-ask { justify-items: center; text-align: center; padding-top: 4vh; gap: 28px; }
-.ask-form { display: grid; gap: 22px; justify-items: center; width: min(720px, 100%); }
-.topic-input { width: 100%; min-height: 76px; border: 3px solid var(--navy); border-radius: 20px; background: var(--white); padding: 12px 24px; font-size: 1.6rem; }
-.chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
-.chip { min-height: 44px; padding: 8px 20px; border-radius: 999px; border: 2px solid var(--peach); background: var(--white); font-weight: 700; cursor: pointer; }
-.chip:hover { border-color: var(--navy); }
-.ignite { display: grid; justify-items: center; gap: 4px; background: none; border: 0; cursor: pointer; padding: 6px 12px; border-radius: 20px; }
-.ignite svg { width: 150px; height: auto; transition: transform .15s; }
+/* ask: full-screen start page over a slowly moving orange/blue field.
+   Text never sits on bright orange or blue: it lives on the frosted cream card. */
+.sky-field { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--cream); opacity: 0; transition: opacity .6s; pointer-events: none; }
+body.on-ask .sky-field { opacity: 1; }
+.blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .85; will-change: transform; }
+.blob.b1 { width: 60vmax; height: 60vmax; left: -18vmax; top: -22vmax; background: var(--orange); animation: drift1 22s ease-in-out infinite alternate; }
+.blob.b2 { width: 58vmax; height: 58vmax; right: -20vmax; bottom: -24vmax; background: var(--blue); animation: drift2 26s ease-in-out infinite alternate; }
+.blob.b3 { width: 34vmax; height: 34vmax; right: 6vmax; top: -10vmax; background: var(--sky); animation: drift3 18s ease-in-out infinite alternate; }
+.blob.b4 { width: 30vmax; height: 30vmax; left: 4vmax; bottom: -10vmax; background: var(--peach); animation: drift2 20s ease-in-out infinite alternate-reverse; }
+.blob.b5 { width: 16vmax; height: 16vmax; left: 46vw; top: 8vh; background: var(--yellow); opacity: .55; animation: drift3 15s ease-in-out infinite alternate-reverse; }
+@keyframes drift1 { to { transform: translate(18vmax, 14vmax) scale(1.15); } }
+@keyframes drift2 { to { transform: translate(-16vmax, -12vmax) scale(1.1); } }
+@keyframes drift3 { to { transform: translate(-10vmax, 18vmax) scale(.9); } }
+.twinkle { position: absolute; width: 22px; height: 22px; animation: twinkle 3.2s ease-in-out infinite; }
+.twinkle path { fill: var(--yellow); }
+@keyframes twinkle { 0%,100% { opacity: 0; transform: scale(.4) rotate(0); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
+body.on-ask .bar { background: transparent; border-bottom-color: transparent; }
+body.on-ask::before { background: transparent; }
+body.on-ask .bar .btn { background: rgba(255,255,255,.85); }
+
+#view-ask { justify-items: center; text-align: center; padding-top: 6vh; min-height: calc(100dvh - 160px); align-content: center; }
+.ask-card { width: min(760px, 100%); background: rgba(255,246,234,.82); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 2px solid rgba(255,255,255,.7); border-radius: 36px; padding: clamp(28px, 5vw, 52px) clamp(18px, 5vw, 56px); display: grid; gap: 26px; justify-items: center;
+  box-shadow: 0 30px 80px -30px rgba(27,42,74,.45); }
+.rise { opacity: 0; transform: translateY(18px); animation: rise .7s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--i, 0) * 120ms + 100ms); }
+@keyframes rise { to { opacity: 1; transform: none; } }
+#ask-h .word { display: inline-block; }
+.ask-form { display: grid; gap: 22px; justify-items: center; width: 100%; }
+.topic-wrap { position: relative; width: 100%; }
+.topic-input { width: 100%; min-height: 80px; border: 3px solid var(--navy); border-radius: 22px; background: var(--white); padding: 12px 24px; font-size: 1.6rem; text-align: center;
+  transition: box-shadow .25s, transform .25s; }
+.topic-input:focus { outline: none; box-shadow: 0 0 0 6px rgba(47,111,237,.35); }
+.topic-input::placeholder { color: #7A869C; }
+.topic-hint { font-size: 1rem; color: var(--ink); min-height: 1.5em; }
+.ignite { display: grid; justify-items: center; gap: 4px; background: none; border: 0; cursor: pointer; padding: 6px 12px; border-radius: 20px; position: relative; }
+.ignite svg { width: 168px; height: auto; transition: transform .15s; overflow: visible; }
+.ignite .dome { transform-origin: 84px 98px; animation: breathe 2.6s ease-in-out infinite; }
+.ignite .glow { opacity: .0; transform-origin: 84px 98px; animation: halo 2.6s ease-in-out infinite; }
+.ignite .star { transform-origin: 118px 34px; animation: spin-star 6s linear infinite; }
+@keyframes breathe { 50% { transform: scale(1.04); } }
+@keyframes halo { 0% { opacity: .5; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes spin-star { to { transform: rotate(360deg); } }
 .ignite:hover svg { transform: translateY(-3px); }
-.ignite:active svg { transform: translateY(2px) scale(.98); }
-.ignite b { font-family: var(--display); font-size: 1.8rem; font-weight: 800; }
+.ignite:active svg { transform: translateY(2px) scale(.97); }
+.ignite b { font-family: var(--display); font-size: 1.9rem; font-weight: 800; }
 .ignite:disabled { opacity: .5; cursor: not-allowed; }
+.ignite.fire svg { animation: press .45s ease-out; }
+@keyframes press { 30% { transform: translateY(4px) scale(.94); } 70% { transform: translateY(-6px) scale(1.06); } }
+.burst-bit { position: fixed; width: 14px; height: 14px; pointer-events: none; z-index: 30; border-radius: 3px; animation: fly .8s cubic-bezier(.15,.7,.3,1) forwards; }
+@keyframes fly { to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; } }
+#play-sample { background: rgba(255,255,255,.85); padding: 10px 20px; border-radius: 999px; min-height: 48px; text-decoration: none; }
+#play-sample:hover { text-decoration: underline; }
 .notice { max-width: 640px; background: var(--white); border: 2px solid var(--peach); border-radius: var(--r-md); padding: 14px 18px; text-align: left; }
 .notice.error { border-color: var(--danger); }
 .notice strong { display: block; font-family: var(--display); }
@@ -158,6 +197,13 @@ details.recipe pre { font-family: var(--mono); font-size: .8rem; white-space: pr
 }
 </style>
 
+<div class="sky-field" aria-hidden="true">
+  <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i><i class="blob b5"></i>
+  <svg class="twinkle" style="left:12%;top:30%" viewBox="0 0 20 20"><path d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z"/></svg>
+  <svg class="twinkle" style="left:84%;top:22%;animation-delay:1.1s" viewBox="0 0 20 20"><path d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z"/></svg>
+  <svg class="twinkle" style="left:78%;top:78%;animation-delay:2.2s" viewBox="0 0 20 20"><path d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z"/></svg>
+  <svg class="twinkle" style="left:20%;top:82%;animation-delay:.6s" viewBox="0 0 20 20"><path d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z"/></svg>
+</div>
 <header class="bar">
   <div class="bar-in">
     <button class="brand" id="home" type="button" aria-label="Spark Studio home">
@@ -175,20 +221,28 @@ details.recipe pre { font-family: var(--mono); font-size: .8rem; white-space: pr
 <main>
   <!-- ASK -->
   <section class="view" id="view-ask" aria-labelledby="ask-h">
-    <p class="eyebrow">Step 1 of 5 · Ask</p>
-    <h1 id="ask-h">What are you curious about?</h1>
-    <form class="ask-form" id="ask-form" autocomplete="off">
-      <label for="topic" class="eyebrow" style="position:absolute;left:-9999px">Your topic</label>
-      <input class="topic-input" id="topic" name="topic" maxlength="80" placeholder="volcanoes, bread, the moon…" value="volcanoes">
-      <div class="chips" id="ideas"><span class="muted"><b>Or try:</b></span></div>
-      <button class="ignite" id="ignite-ask" type="submit">
-        <svg viewBox="0 0 168 120" aria-hidden="true"><rect x="4" y="96" width="160" height="20" rx="10" fill="#1B2A4A"/><path d="M12 98 A72 72 0 0 1 156 98 Z" fill="#FF7A1A"/><path d="M40 70 A44 44 0 0 1 70 38" stroke="#FFD9C2" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M118 18 L122 30 L134 34 L122 38 L118 50 L114 38 L102 34 L114 30 Z" fill="#FFD23F"/></svg>
-        <b>Ignite</b>
-        <span class="muted">Press Enter, or the Ignite button</span>
-      </button>
-    </form>
-    <div class="notice" id="ask-note" hidden></div>
-    <button class="linkish" id="play-sample" type="button">Or play the sample volcano</button>
+    <div class="ask-card">
+      <p class="eyebrow rise" style="--i:0">Step 1 of 5 · Ask</p>
+      <h1 id="ask-h" class="rise" style="--i:1">What are you curious about?</h1>
+      <form class="ask-form" id="ask-form" autocomplete="off">
+        <label for="topic" class="eyebrow" style="position:absolute;left:-9999px">Your topic</label>
+        <div class="topic-wrap rise" style="--i:2">
+          <input class="topic-input" id="topic" name="topic" maxlength="80" placeholder="volcanoes" aria-describedby="topic-hint">
+        </div>
+        <p class="topic-hint rise" id="topic-hint" style="--i:3">Type anything, or press Ignite to try the idea in the box.</p>
+        <button class="ignite rise" id="ignite-ask" type="submit" style="--i:4">
+          <svg viewBox="0 0 168 120" aria-hidden="true">
+            <path class="glow" d="M12 98 A72 72 0 0 1 156 98 Z" fill="#FFD23F"/>
+            <rect x="4" y="96" width="160" height="20" rx="10" fill="#1B2A4A"/>
+            <g class="dome"><path d="M12 98 A72 72 0 0 1 156 98 Z" fill="#FF7A1A"/><path d="M40 70 A44 44 0 0 1 70 38" stroke="#FFD9C2" stroke-width="8" stroke-linecap="round" fill="none"/></g>
+            <path class="star" d="M118 18 L122 30 L134 34 L122 38 L118 50 L114 38 L102 34 L114 30 Z" fill="#FFD23F"/>
+          </svg>
+          <b>Ignite</b>
+        </button>
+      </form>
+      <div class="notice" id="ask-note" hidden></div>
+    </div>
+    <button class="linkish rise" id="play-sample" type="button" style="--i:5">Or play the sample volcano</button>
   </section>
 
   <!-- BUILD -->
@@ -297,7 +351,7 @@ const PARTICLES = ["smoke","bubbles","sparks","snow","leaves","stars","steam"];
 const VAR_EFFECTS = ["glow","color","size","shake","speed","particles"];
 const REACTIONS = ["burst","grow","shrink","freeze","rain","sparkle","smoke","spin","shake"];
 const EFFECT_WORDS = { burst:"burst out", grow:"grow big", shrink:"shrink", freeze:"freeze", rain:"rain", sparkle:"sparkle", smoke:"puff smoke", spin:"spin", shake:"rumble" };
-const IDEAS = ["Bread rising","The moon","Hurricanes","Sunflowers","Your heartbeat","Ice cream"];
+const IDEAS = ["volcanoes","bread rising","the moon","hurricanes","sunflowers","your heartbeat","ice cream","sharks","thunderstorms","rainbows","frogs","rockets","popcorn popping","earthquakes","honeybees","snowflakes"];
 
 const SAMPLE = {
   journey: "change-it", topic: "volcanoes", title: "Wake the Volcano",
@@ -406,6 +460,8 @@ ${RULES_NOTE}`;
 const views = ["ask","build","play","remix","mine"];
 function show(name) {
   for (const v of views) $("view-" + v).hidden = v !== name;
+  document.body.classList.toggle("on-ask", name === "ask");
+  if (name === "ask") rotator.start(); else rotator.stop();
   if (name === "play") { $("stage-play").append($("canvas-wrap"), $("cap-box")); $("plug-col").querySelector("h3").after($("knobs")); }
   if (name === "remix") { $("stage-remix").append($("canvas-wrap"), $("cap-box"), $("knobs")); renderRules(); }
   if (name === "mine") loadMine();
@@ -414,9 +470,54 @@ function show(name) {
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 3200); }
 
 /* ---------- Ask ---------- */
-for (const idea of IDEAS) { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = idea;
-  b.onclick = () => { $("topic").value = idea; generate(idea); }; $("ideas").append(b); }
-$("ask-form").addEventListener("submit", e => { e.preventDefault(); const t = $("topic").value.trim(); if (t) generate(t); else $("topic").focus(); });
+/* Rotating idea in the empty box: types out, pauses, erases, next. Pauses while the kid types. */
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rotator = (() => {
+  const input = () => $("topic");
+  let order = [...IDEAS].sort(() => Math.random() - .5), i = 0, timer = null, running = false;
+  const current = () => order[i % order.length];
+  const wait = (ms, fn) => { clearTimeout(timer); timer = setTimeout(fn, ms); };
+  function typeOut(word, n = 0) {
+    if (!running) return;
+    input().placeholder = word.slice(0, n) + (n < word.length ? "" : "");
+    if (n < word.length) wait(70, () => typeOut(word, n + 1)); else wait(2200, () => erase(word, word.length));
+  }
+  function erase(word, n) {
+    if (!running) return;
+    input().placeholder = word.slice(0, n);
+    if (n > 0) wait(35, () => erase(word, n - 1)); else { i++; wait(250, () => typeOut(current())); }
+  }
+  function step() { if (reduceMotion) { input().placeholder = current(); wait(3000, () => { i++; step(); }); } else typeOut(current()); }
+  return {
+    current,
+    start() { if (running) return; running = true; step(); },
+    stop() { running = false; clearTimeout(timer); input().placeholder = current(); },
+  };
+})();
+$("topic").addEventListener("focus", () => { if (!$("topic").value) return; rotator.stop(); });
+$("topic").addEventListener("input", () => { if ($("topic").value) rotator.stop(); else rotator.start(); });
+
+function sparkBurst(el) {
+  if (reduceMotion) return;
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .45;
+  const colors = ["#FF7A1A", "#2F6FED", "#FFD23F", "#FFD9C2", "#D6EBFF"];
+  for (let k = 0; k < 22; k++) {
+    const b = document.createElement("i"); b.className = "burst-bit";
+    const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 160;
+    b.style.cssText = `left:${cx}px;top:${cy}px;background:${colors[k % colors.length]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - 40}px;--r:${Math.random() * 540}deg`;
+    document.body.append(b); setTimeout(() => b.remove(), 900);
+  }
+}
+$("ask-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const typed = $("topic").value.trim();
+  const t = typed || rotator.current();
+  if (!typed) $("topic").value = t;
+  const btn = $("ignite-ask"); btn.classList.remove("fire"); void btn.offsetWidth; btn.classList.add("fire");
+  sparkBurst(btn);
+  rotator.stop();
+  setTimeout(() => generate(t), reduceMotion ? 0 : 450);
+});
 $("play-sample").onclick = () => loadSpark(SAMPLE, "sample");
 function note(html, isError) { const n = $("ask-note"); n.innerHTML = html; n.classList.toggle("error", !!isError); n.hidden = !html; }
 
@@ -750,7 +851,7 @@ async function loadMine() {
 
 /* ---------- Header ---------- */
 $("home").onclick = () => show("ask");
-$("restart").onclick = () => { if (abort) abort.abort(); note(""); show("ask"); };
+$("restart").onclick = () => { if (abort) abort.abort(); note(""); $("topic").value = ""; show("ask"); };
 $("go-mine").onclick = () => { $("reflect").hidden = true; show("mine"); };
 $("new-spark").onclick = () => show("ask");
 $("bigger").onclick = () => { const on = document.documentElement.classList.toggle("bigger"); $("bigger").setAttribute("aria-pressed", on); store.set("spark.bigger", on); };
