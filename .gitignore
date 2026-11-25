@@ -1,7 +1,11 @@
 .DS_Store
 node_modules/
+dist/
 .env
 .env.*
+.dev.vars
+!.dev.vars.example
 .wrangler/
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json

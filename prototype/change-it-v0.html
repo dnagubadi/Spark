@@ -1,0 +1,771 @@
+<title>Spark Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@400&display=swap">
+<style>
+/* Layout: one kiosk-style stage at a time (Ask, Build, Play, Remix, My Sparks); play = stage left, Spark-Plug right, stacking on phones.
+   Single deliberate light look from the Spark brand (cream ground, navy ink, orange/blue only as shapes, never behind text). */
+[hidden] { display: none !important; }
+:root {
+  color-scheme: light;
+  --cream: #FFF6EA; --navy: #1B2A4A; --ink: #33415C; --orange: #FF7A1A; --blue: #2F6FED;
+  --peach: #FFD9C2; --sky: #D6EBFF; --yellow: #FFD23F; --white: #FFFFFF; --line: #F0DCCB;
+  --danger: #A33A12;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r-lg: 24px; --r-md: 16px;
+}
+html.bigger { font-size: 115%; }
+body { background: var(--cream); color: var(--navy); font-family: var(--body); font-size: 1.125rem; line-height: 1.5; }
+* { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; color: var(--navy); }
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.05; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+h3 { font-size: 1.3rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-weight: 700; font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+.muted { color: var(--ink); }
+
+/* top bar */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--cream); border-bottom: 2px solid var(--peach);
+  padding-block: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--cream); }
+.bar-in { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.4rem; background: none; border: 0; padding: 0; cursor: pointer; }
+.bar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* buttons */
+.btn { min-height: 48px; padding: 10px 24px; border-radius: 999px; border: 2px solid var(--navy); background: var(--white); color: var(--navy);
+  font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.btn.primary { background: var(--navy); color: var(--cream); }
+.btn:hover { transform: translateY(-1px); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn.small { min-height: 40px; padding: 6px 16px; font-size: 1rem; }
+.linkish { background: none; border: 0; padding: 0; color: var(--navy); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+main { max-width: 1280px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.view { display: grid; gap: 24px; }
+
+/* ask */
+#view-ask { justify-items: center; text-align: center; padding-top: 4vh; gap: 28px; }
+.ask-form { display: grid; gap: 22px; justify-items: center; width: min(720px, 100%); }
+.topic-input { width: 100%; min-height: 76px; border: 3px solid var(--navy); border-radius: 20px; background: var(--white); padding: 12px 24px; font-size: 1.6rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+.chip { min-height: 44px; padding: 8px 20px; border-radius: 999px; border: 2px solid var(--peach); background: var(--white); font-weight: 700; cursor: pointer; }
+.chip:hover { border-color: var(--navy); }
+.ignite { display: grid; justify-items: center; gap: 4px; background: none; border: 0; cursor: pointer; padding: 6px 12px; border-radius: 20px; }
+.ignite svg { width: 150px; height: auto; transition: transform .15s; }
+.ignite:hover svg { transform: translateY(-3px); }
+.ignite:active svg { transform: translateY(2px) scale(.98); }
+.ignite b { font-family: var(--display); font-size: 1.8rem; font-weight: 800; }
+.ignite:disabled { opacity: .5; cursor: not-allowed; }
+.notice { max-width: 640px; background: var(--white); border: 2px solid var(--peach); border-radius: var(--r-md); padding: 14px 18px; text-align: left; }
+.notice.error { border-color: var(--danger); }
+.notice strong { display: block; font-family: var(--display); }
+
+/* build */
+#view-build { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 48px; padding-top: 4vh; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.steps li { display: flex; align-items: center; gap: 14px; font-size: 1.25rem; color: var(--ink); }
+.steps li .dot { width: 34px; height: 34px; border-radius: 50%; border: 4px solid var(--peach); flex: none; display: grid; place-items: center; }
+.steps li.done { color: var(--navy); }
+.steps li.done .dot { background: var(--navy); border-color: var(--navy); }
+.steps li.done .dot::after { content: ""; width: 12px; height: 7px; border: solid var(--cream); border-width: 0 0 3px 3px; transform: rotate(-45deg) translate(1px,-1px); }
+.steps li.now { font-weight: 700; color: var(--navy); }
+.steps li.now .dot { border-top-color: var(--orange); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.progress { height: 16px; background: var(--peach); border-radius: 8px; overflow: hidden; max-width: 560px; }
+.progress span { display: block; height: 100%; width: 5%; background: var(--orange); border-radius: 8px; transition: width .4s; }
+.peek { background: var(--navy); color: var(--cream); border-radius: var(--r-lg); padding: 28px; display: grid; gap: 12px; min-width: 0; }
+.peek h3 { color: var(--yellow); }
+.peek pre { margin: 0; font-family: var(--mono); font-size: .85rem; line-height: 1.5; color: var(--sky); white-space: pre-wrap; word-break: break-word; max-height: 46vh; overflow: auto; }
+
+/* play */
+.play-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.play-head .titles { display: grid; gap: 6px; min-width: 0; max-width: 760px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.play-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 32px; align-items: start; }
+.stage { display: grid; gap: 14px; min-width: 0; }
+.canvas-wrap { position: relative; border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 880 / 520; max-width: 100%; background: var(--sky); }
+canvas { display: block; width: 100%; height: 100%; }
+.reaction-tag { position: absolute; left: 16px; top: 16px; background: var(--navy); color: var(--cream); font-family: var(--display); font-weight: 800; padding: 6px 16px; border-radius: 999px; font-size: 1.2rem; }
+.caption { display: flex; gap: 14px; align-items: center; background: var(--navy); color: var(--cream); border-radius: 20px; padding: 18px 24px; font-weight: 700; font-size: 1.25rem; min-height: 72px; }
+.caption svg { flex: none; }
+.plug { display: grid; gap: 14px; }
+.plug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.knob, .ignite-tile { background: var(--white); border: 2px solid var(--peach); border-radius: var(--r-lg); padding: 16px 14px; display: grid; justify-items: center; gap: 6px; text-align: center; }
+.knob .tag, .ignite-tile .tag { font-weight: 700; font-size: .78rem; letter-spacing: .1em; color: var(--ink); }
+.dial { width: 84px; height: 84px; border-radius: 50%; background: var(--cream); border: 4px solid var(--navy); display: grid; place-items: center; }
+.dial i { width: 58px; height: 58px; border-radius: 50%; background: var(--navy); position: relative; transform: rotate(var(--a, -135deg)); transition: transform .12s; }
+.dial i::after { content: ""; position: absolute; left: 50%; top: 4px; width: 6px; height: 22px; margin-left: -3px; border-radius: 3px; background: var(--yellow); }
+.knob .name { font-family: var(--display); font-weight: 700; font-size: 1.15rem; line-height: 1.15; }
+.knob .val { font-variant-numeric: tabular-nums; color: var(--ink); font-size: 1rem; }
+.knob input[type=range] { width: 100%; accent-color: var(--navy); height: 28px; cursor: pointer; }
+.ignite-tile { cursor: pointer; font: inherit; color: var(--navy); }
+.ignite-tile:hover { border-color: var(--navy); }
+.ignite-tile svg { width: 100px; height: auto; }
+.ignite-tile .name { font-family: var(--display); font-weight: 700; font-size: 1.15rem; line-height: 1.15; }
+.challenge { background: var(--peach); border-radius: 20px; padding: 18px 20px; display: grid; gap: 6px; }
+.challenge p { font-family: var(--display); font-weight: 700; font-size: 1.2rem; }
+.keys { font-size: .95rem; color: var(--ink); }
+kbd { font-family: var(--mono); background: var(--white); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 6px; padding: 0 6px; font-size: .85rem; }
+details.recipe { background: var(--white); border: 2px solid var(--peach); border-radius: var(--r-md); padding: 14px 18px; }
+details.recipe summary { cursor: pointer; font-weight: 700; }
+details.recipe pre { font-family: var(--mono); font-size: .8rem; white-space: pre-wrap; word-break: break-word; max-height: 360px; overflow: auto; margin: 12px 0 0; color: var(--ink); }
+
+/* remix */
+.panel { background: var(--white); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 14px; min-width: 0; }
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 700; }
+.field input[type=text], .field textarea, .rule select, .rule input { border: 2px solid var(--navy); border-radius: 12px; background: var(--white); padding: 8px 12px; min-height: 44px; }
+.field textarea { min-height: 84px; resize: vertical; }
+.rule { background: var(--sky); border-radius: var(--r-md); padding: 14px 16px; display: grid; gap: 10px; border-left: 8px solid var(--blue); }
+.rule-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 700; }
+.rule input[type=number] { width: 84px; }
+.rule input.cap { width: 100%; }
+.rule .rule-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.add-rule { border: 2px dashed var(--ink); background: none; border-radius: var(--r-md); min-height: 52px; font-weight: 700; cursor: pointer; color: var(--ink); }
+.ai-remix { background: var(--cream); border-radius: var(--r-md); padding: 16px; display: grid; gap: 10px; }
+
+#stage-remix .plug-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+/* my sparks */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+.card { background: var(--white); border: 2px solid var(--peach); border-radius: 20px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.card .swatch { height: 90px; border-radius: 12px; }
+.card .meta { color: var(--ink); font-size: .95rem; }
+.card .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.reflect { background: var(--peach); border-radius: 20px; padding: 20px 24px; display: grid; gap: 6px; }
+.reflect p { font-family: var(--display); font-weight: 700; font-size: 1.3rem; }
+.empty { background: var(--white); border: 2px dashed var(--peach); border-radius: 20px; padding: 28px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--navy); color: var(--cream); padding: 12px 22px; border-radius: 999px; font-weight: 700; z-index: 20; max-width: calc(100% - 32px); }
+
+@media (max-width: 960px) {
+  .play-grid { grid-template-columns: minmax(0,1fr); }
+  #view-build { grid-template-columns: minmax(0,1fr); gap: 28px; }
+}
+@media (max-width: 480px) {
+  .plug-grid { gap: 10px; }
+  .dial { width: 68px; height: 68px; } .dial i { width: 46px; height: 46px; }
+  .caption { font-size: 1.05rem; padding: 14px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<header class="bar">
+  <div class="bar-in">
+    <button class="brand" id="home" type="button" aria-label="Spark Studio home">
+      <svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 20 A16 16 0 0 1 36 20 Z" fill="#FF7A1A"/><path d="M4 20 A16 16 0 0 0 36 20 Z" fill="#2F6FED"/><path d="M28 2 L30 8 L36 10 L30 12 L28 18 L26 12 L20 10 L26 8 Z" fill="#FFD23F"/></svg>
+      Spark Studio
+    </button>
+    <div class="bar-actions">
+      <button class="btn small" id="go-mine" type="button">My Sparks</button>
+      <button class="btn small" id="bigger" type="button" aria-pressed="false">Bigger text</button>
+      <button class="btn small" id="restart" type="button">Start over</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ASK -->
+  <section class="view" id="view-ask" aria-labelledby="ask-h">
+    <p class="eyebrow">Step 1 of 5 · Ask</p>
+    <h1 id="ask-h">What are you curious about?</h1>
+    <form class="ask-form" id="ask-form" autocomplete="off">
+      <label for="topic" class="eyebrow" style="position:absolute;left:-9999px">Your topic</label>
+      <input class="topic-input" id="topic" name="topic" maxlength="80" placeholder="volcanoes, bread, the moon…" value="volcanoes">
+      <div class="chips" id="ideas"><span class="muted"><b>Or try:</b></span></div>
+      <button class="ignite" id="ignite-ask" type="submit">
+        <svg viewBox="0 0 168 120" aria-hidden="true"><rect x="4" y="96" width="160" height="20" rx="10" fill="#1B2A4A"/><path d="M12 98 A72 72 0 0 1 156 98 Z" fill="#FF7A1A"/><path d="M40 70 A44 44 0 0 1 70 38" stroke="#FFD9C2" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M118 18 L122 30 L134 34 L122 38 L118 50 L114 38 L102 34 L114 30 Z" fill="#FFD23F"/></svg>
+        <b>Ignite</b>
+        <span class="muted">Press Enter, or the Ignite button</span>
+      </button>
+    </form>
+    <div class="notice" id="ask-note" hidden></div>
+    <button class="linkish" id="play-sample" type="button">Or play the sample volcano</button>
+  </section>
+
+  <!-- BUILD -->
+  <section class="view" id="view-build" hidden aria-labelledby="build-h">
+    <div style="display:grid;gap:24px;min-width:0">
+      <p class="eyebrow">Step 2 of 5 · Build</p>
+      <h2 id="build-h">Building your Spark…</h2>
+      <ul class="steps" id="steps">
+        <li data-k="title"><span class="dot"></span>Naming your Spark</li>
+        <li data-k="scene"><span class="dot"></span>Making the world</li>
+        <li data-k="variables"><span class="dot"></span>Giving your knobs jobs</li>
+        <li data-k="reactions"><span class="dot"></span>Deciding what can happen</li>
+        <li data-k="challenge"><span class="dot"></span>Writing a challenge for you</li>
+      </ul>
+      <div class="progress" aria-hidden="true"><span id="prog"></span></div>
+      <div><button class="btn" id="cancel-build" type="button">Stop</button></div>
+    </div>
+    <div class="peek">
+      <h3>Peek behind the scenes</h3>
+      <p>This is the recipe Claude is writing right now. The game reads it to build your world.</p>
+      <pre id="stream" aria-live="off">Waiting for Claude…</pre>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="view" id="view-play" hidden aria-labelledby="play-title">
+    <div class="play-head">
+      <div class="titles">
+        <p class="eyebrow" id="play-eyebrow">Step 3 of 5 · Play</p>
+        <h2 id="play-title">Wake the Volcano</h2>
+        <p class="muted" id="play-intro"></p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="go-remix" type="button">Remix it</button>
+        <button class="btn primary" id="save" type="button">Save to My Sparks</button>
+      </div>
+    </div>
+    <div class="play-grid">
+      <div class="stage" id="stage-play">
+        <div class="canvas-wrap" id="canvas-wrap">
+          <canvas id="scene" width="880" height="520" role="img" aria-label="The Spark's world"></canvas>
+          <div class="reaction-tag" id="reaction-tag" hidden></div>
+        </div>
+        <div class="caption" id="cap-box" role="status" aria-live="polite">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 L19 13 L30 16 L19 19 L16 30 L13 19 L2 16 L13 13 Z" fill="#FFD23F"/></svg>
+          <span id="caption">Turn one knob. Watch what happens.</span>
+        </div>
+      </div>
+      <div class="plug" id="plug-col">
+        <h3>Your Spark-Plug</h3>
+        <div class="plug-grid" id="knobs"></div>
+        <div class="challenge"><span class="eyebrow">Build on it</span><p id="challenge"></p></div>
+        <p class="keys">Keyboard: <kbd>Q</kbd>/<kbd>A</kbd> knob 1, <kbd>W</kbd>/<kbd>S</kbd> knob 2, <kbd>E</kbd>/<kbd>D</kbd> knob 3, <kbd>Space</kbd> Ignite.</p>
+        <details class="recipe"><summary>Peek at this Spark's recipe</summary><pre id="recipe"></pre>
+          <p style="margin-top:10px"><button class="btn small" id="copy-recipe" type="button">Copy recipe</button></p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- REMIX -->
+  <section class="view" id="view-remix" hidden aria-labelledby="remix-h">
+    <div class="play-head">
+      <div class="titles"><p class="eyebrow">Step 4 of 5 · Remix</p><h2 id="remix-h">Make it yours</h2>
+        <p class="muted">Change the rules, then turn the knobs to test them. These are the same pieces Claude used.</p></div>
+      <div class="actions"><button class="btn" id="undo" type="button">Undo</button><button class="btn primary" id="back-play" type="button">Play it</button></div>
+    </div>
+    <div class="play-grid">
+      <div class="stage" id="stage-remix"></div>
+      <div class="panel">
+        <div class="field"><label for="r-title">Name</label><input type="text" id="r-title" maxlength="48"></div>
+        <h3>The rules</h3>
+        <div id="rules" style="display:grid;gap:12px"></div>
+        <button class="add-rule" id="add-rule" type="button">+ Add a rule</button>
+        <div class="ai-remix">
+          <label for="ai-ask" style="font-weight:700">Or ask Claude to change it</label>
+          <textarea id="ai-ask" maxlength="200" placeholder="Make it erupt blue lava, and add a rule for when it gets really cold"></textarea>
+          <div><button class="btn primary small" id="ai-go" type="button">Change it</button></div>
+          <p class="muted" id="ai-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MY SPARKS -->
+  <section class="view" id="view-mine" hidden aria-labelledby="mine-h">
+    <div class="play-head"><div class="titles"><p class="eyebrow">Step 5 of 5 · Share</p><h2 id="mine-h">My Sparks</h2>
+      <p class="muted" id="mine-where"></p></div>
+      <div class="actions"><button class="btn primary" id="new-spark" type="button">Make a new Spark</button></div></div>
+    <div class="reflect" id="reflect" hidden><span class="eyebrow">Think about it</span><p>What surprised you when you changed the rules? What would you try next?</p></div>
+    <div class="cards" id="cards"></div>
+    <div class="empty" id="mine-empty" hidden><h3>No saved Sparks yet</h3><p class="muted">Make one, then press Save to My Sparks. It will show up here.</p></div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+
+/* ---------- The journey's fixed menus (the AI and kids can only pick from these) ---------- */
+const SETTINGS = ["island","garden","kitchen","space","sky","lab","ocean"];
+const SHAPES = ["mountain","plant","cloud","pot","planet","creature","flask"];
+const PARTICLES = ["smoke","bubbles","sparks","snow","leaves","stars","steam"];
+const VAR_EFFECTS = ["glow","color","size","shake","speed","particles"];
+const REACTIONS = ["burst","grow","shrink","freeze","rain","sparkle","smoke","spin","shake"];
+const EFFECT_WORDS = { burst:"burst out", grow:"grow big", shrink:"shrink", freeze:"freeze", rain:"rain", sparkle:"sparkle", smoke:"puff smoke", spin:"spin", shake:"rumble" };
+const IDEAS = ["Bread rising","The moon","Hurricanes","Sunflowers","Your heartbeat","Ice cream"];
+
+const SAMPLE = {
+  journey: "change-it", topic: "volcanoes", title: "Wake the Volcano",
+  intro: "A sleepy volcano sits on a tiny island. What will wake it up?",
+  scene: { setting: "island", skyTop: "#D6EBFF", skyBottom: "#FFF6EA", particle: "smoke", particleColor: "#9AA3B5" },
+  subject: { shape: "mountain", name: "volcano", color: "#4A3F5C", hotColor: "#FF7A1A" },
+  variables: [
+    { id: "knob1", label: "Magma heat", effect: "glow", start: 20, lowText: "The magma is cool and stays deep down.", highText: "Hot magma glows and starts to rise." },
+    { id: "knob2", label: "Gas pressure", effect: "particles", start: 10, lowText: "Hardly any gas is trapped inside.", highText: "Gas builds up and puffs out of the top." },
+    { id: "knob3", label: "Rock thickness", effect: "size", start: 60, lowText: "Thin rock cracks easily.", highText: "Thick rock holds everything in." }
+  ],
+  reactions: [
+    { name: "Eruption!", effect: "burst", color: "#FF7A1A", when: [{ knob: "knob1", op: ">", value: 70 }, { knob: "knob2", op: ">", value: 60 }, { knob: "knob3", op: "<", value: 50 }], caption: "Hot magma and trapped gas burst through the thin rock. Eruption!" },
+    { name: "Rumbling", effect: "shake", color: "#FF7A1A", when: [{ knob: "knob1", op: ">", value: 70 }, { knob: "knob2", op: ">", value: 60 }], caption: "The pressure is high, but thick rock holds it in. The ground rumbles!" },
+    { name: "Fast asleep", effect: "freeze", color: "#D6EBFF", when: [{ knob: "knob1", op: "<", value: 10 }], caption: "Cold and quiet. A dormant volcano can sleep for thousands of years." }
+  ],
+  idleCaption: "Turn one knob. Watch what happens.",
+  ignite: "Make a new island",
+  challenge: "Can you make it rumble without erupting?"
+};
+
+/* ---------- Validation: the AI's JSON only gets in if it fits the journey ---------- */
+const HEX = /^#[0-9a-fA-F]{6}$/;
+const str = (v, max, d) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : d);
+const pick = (v, list, d) => (list.includes(v) ? v : d);
+const num = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n))) : d; };
+const color = (v, d) => (typeof v === "string" && HEX.test(v.trim()) ? v.trim() : d);
+function normalize(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("not an object");
+  const s = { journey: "change-it" };
+  s.topic = str(raw.topic, 60, "something new");
+  s.title = str(raw.title, 48, "My Spark");
+  s.intro = str(raw.intro, 160, "");
+  const sc = raw.scene || {};
+  s.scene = { setting: pick(sc.setting, SETTINGS, "garden"), skyTop: color(sc.skyTop, "#D6EBFF"), skyBottom: color(sc.skyBottom, "#FFF6EA"),
+    particle: pick(sc.particle, PARTICLES, "sparks"), particleColor: color(sc.particleColor, "#FFD23F") };
+  const sb = raw.subject || {};
+  s.subject = { shape: pick(sb.shape, SHAPES, "creature"), name: str(sb.name, 30, "thing"), color: color(sb.color, "#2F6FED"), hotColor: color(sb.hotColor, "#FF7A1A") };
+  const vars = Array.isArray(raw.variables) ? raw.variables : [];
+  if (vars.length < 3) throw new Error("needs three knobs");
+  s.variables = vars.slice(0, 3).map((v, i) => ({ id: "knob" + (i + 1), label: str(v && v.label, 24, "Knob " + (i + 1)),
+    effect: pick(v && v.effect, VAR_EFFECTS, VAR_EFFECTS[i]), start: num(v && v.start, 0, 100, 30),
+    lowText: str(v && v.lowText, 120, ""), highText: str(v && v.highText, 120, "") }));
+  const ids = s.variables.map(v => v.id);
+  const rx = Array.isArray(raw.reactions) ? raw.reactions : [];
+  s.reactions = rx.slice(0, 5).map(r => ({
+    name: str(r && r.name, 28, "Something happens"), effect: pick(r && r.effect, REACTIONS, "sparkle"), color: color(r && r.color, "#FFD23F"),
+    when: (Array.isArray(r && r.when) ? r.when : []).slice(0, 3).map(c => ({ knob: pick(c && c.knob, ids, "knob1"), op: c && c.op === "<" ? "<" : ">", value: num(c && c.value, 1, 99, 70) })),
+    caption: str(r && r.caption, 160, "") })).filter(r => r.when.length && r.caption);
+  if (!s.reactions.length) throw new Error("needs at least one reaction");
+  s.idleCaption = str(raw.idleCaption, 120, "Turn one knob. Watch what happens.");
+  s.ignite = str(raw.ignite, 32, "Make a new one");
+  s.challenge = str(raw.challenge, 160, "What happens if you turn two knobs at once?");
+  return s;
+}
+
+/* ---------- AI drafting (Claude, through the page's sample capability) ---------- */
+let sample = null, db = null, user = null, uid = null;
+const SCHEMA_NOTE = `Return ONLY one JSON object with exactly these fields:
+{
+  "topic": string,
+  "title": string (2-5 words, fun),
+  "intro": string (one sentence, under 20 words, sets the scene),
+  "scene": { "setting": one of ${JSON.stringify(SETTINGS)}, "skyTop": "#RRGGBB", "skyBottom": "#RRGGBB", "particle": one of ${JSON.stringify(PARTICLES)}, "particleColor": "#RRGGBB" },
+  "subject": { "shape": one of ${JSON.stringify(SHAPES)}, "name": string, "color": "#RRGGBB", "hotColor": "#RRGGBB" },
+  "variables": exactly 3 items [{ "id": "knob1"|"knob2"|"knob3", "label": string (1-3 words), "effect": one of ${JSON.stringify(VAR_EFFECTS)} (use each effect at most once), "start": 0-100, "lowText": string (what it means when this is low, under 14 words), "highText": string (when it is high, under 14 words) }],
+  "reactions": 2 to 4 items [{ "name": string (1-3 words), "effect": one of ${JSON.stringify(REACTIONS)}, "color": "#RRGGBB", "when": 1-3 conditions [{ "knob": "knob1"|"knob2"|"knob3", "op": ">" or "<", "value": 5-95 }], "caption": string (explains WHY it happened, under 20 words) }],
+  "idleCaption": string (an invitation to try one knob),
+  "ignite": string (what the Ignite button makes, 2-4 words, like "Make a new island"),
+  "challenge": string (a question that asks the kid to build on what they learned)
+}`;
+const RULES_NOTE = `Rules:
+- Audience: curious kids aged 8 to 12. Plain, friendly words. Facts must be true.
+- This is the "Change It" journey: three knobs each control ONE real variable of the topic, and the kid watches cause and effect. Pick the three variables that really matter for how the topic works.
+- Reactions are checked in order and the first one whose conditions are all true is shown, so put the most specific, most dramatic reaction first. At least one reaction should need two knobs together. Include one reaction for a low extreme. Make every reaction reachable from the start values by turning knobs.
+- Start values must not trigger any reaction.
+- Pick a setting and subject shape that fit the topic (a mountain for volcanoes, a pot for cooking, a planet for space, a creature for animals, a plant for growing things, a cloud for weather, a flask for chemistry).
+- Colors: a soft sky (light colors) so the subject stands out.
+- Safety: if the topic is violent, scary, about weapons, about hurting people or animals, adult, or about a real private person, do not make that Spark. Instead return ONLY {"redirect": {"topic": a gentle related science or nature topic, "message": one kind sentence to the kid suggesting it}}.`;
+
+function buildPrompt(topic, variation) {
+  return `You design "Sparks" for Spark Studio, a creative toolkit where kids pick anything they are curious about and get a playable first draft to change and share.
+
+Make a Spark about: "${topic.replace(/"/g, "'")}"
+${variation ? "\nThis is a NEW version. Do not repeat this earlier one; pick a different title, different colors, and different reaction ideas:\n" + variation + "\n" : ""}
+${SCHEMA_NOTE}
+
+${RULES_NOTE}
+
+Example of a good Spark (about volcanoes):
+${JSON.stringify(SAMPLE)}`;
+}
+function remixPrompt(spark, ask) {
+  return `You help kids remix a Spark in Spark Studio. Here is their current Spark as JSON:
+${JSON.stringify(spark)}
+
+The kid asked: "${ask.replace(/"/g, "'")}"
+
+Change only what they asked for and keep everything else the same. Stay inside the allowed values.
+${SCHEMA_NOTE}
+
+${RULES_NOTE}`;
+}
+
+/* ---------- Views ---------- */
+const views = ["ask","build","play","remix","mine"];
+function show(name) {
+  for (const v of views) $("view-" + v).hidden = v !== name;
+  if (name === "play") { $("stage-play").append($("canvas-wrap"), $("cap-box")); $("plug-col").querySelector("h3").after($("knobs")); }
+  if (name === "remix") { $("stage-remix").append($("canvas-wrap"), $("cap-box"), $("knobs")); renderRules(); }
+  if (name === "mine") loadMine();
+  window.scrollTo({ top: 0 });
+}
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 3200); }
+
+/* ---------- Ask ---------- */
+for (const idea of IDEAS) { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = idea;
+  b.onclick = () => { $("topic").value = idea; generate(idea); }; $("ideas").append(b); }
+$("ask-form").addEventListener("submit", e => { e.preventDefault(); const t = $("topic").value.trim(); if (t) generate(t); else $("topic").focus(); });
+$("play-sample").onclick = () => loadSpark(SAMPLE, "sample");
+function note(html, isError) { const n = $("ask-note"); n.innerHTML = html; n.classList.toggle("error", !!isError); n.hidden = !html; }
+
+let abort = null;
+async function generate(topic, variation) {
+  if (!sample) { note("<strong>Claude isn't available here.</strong>Open this page on claude.ai and allow it to ask Claude. You can still play the sample volcano.", true); show("ask"); return; }
+  note("");
+  show("build");
+  $("build-h").textContent = variation ? "Making a new version…" : `Building your ${topic} Spark…`;
+  const steps = [...$("steps").children]; steps.forEach(li => (li.className = "")); steps[0].className = "now";
+  $("prog").style.width = "5%"; $("stream").textContent = "Waiting for Claude…";
+  abort = new AbortController();
+  try {
+    const raw = await sample.json(buildPrompt(topic, variation), {
+      signal: abort.signal, modelTier: "default",
+      onText: ({ text }) => {
+        $("stream").textContent = text; $("stream").scrollTop = $("stream").scrollHeight;
+        let done = 0; steps.forEach((li, i) => { if (text.includes('"' + li.dataset.k + '"')) done = i + 1; });
+        steps.forEach((li, i) => (li.className = i < done - 1 ? "done" : i === done - 1 || (done === 0 && i === 0) ? "now" : ""));
+        $("prog").style.width = Math.min(95, 5 + done * 18) + "%";
+      }
+    });
+    if (raw && raw.redirect) {
+      const r = raw.redirect; show("ask");
+      note(`<strong>Let's try something else.</strong>${esc(str(r.message, 200, "That one isn't a good fit for Spark."))} <button class="linkish" id="redir">Try “${esc(str(r.topic, 60, "volcanoes"))}”</button>`);
+      $("redir").onclick = () => { $("topic").value = str(r.topic, 60, "volcanoes"); generate($("topic").value); };
+      return;
+    }
+    const spark = normalize(raw); spark.topic = topic.slice(0, 60);
+    steps.forEach(li => (li.className = "done")); $("prog").style.width = "100%";
+    setTimeout(() => loadSpark(spark, "new"), 450);
+  } catch (e) {
+    show("ask");
+    if (e && e.code === "cancelled") { note(""); return; }
+    const msg = e && e.code === "rate_limited" ? "Claude needs a short break. Try again in a minute."
+      : e && e.code === "not_granted" ? "This page isn't allowed to ask Claude. You can still play the sample volcano."
+      : e && !e.code ? "Claude's recipe didn't fit the journey (" + esc(e.message) + "). Press Ignite to try again."
+      : "Claude's recipe didn't come out right. Press Ignite to try again.";
+    note("<strong>That didn't work.</strong>" + msg, true);
+  } finally { abort = null; }
+}
+$("cancel-build").onclick = () => abort && abort.abort();
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+/* ---------- Play ---------- */
+let spark = null, values = {}, history = [], savedId = null, active = null, changed = null;
+function loadSpark(s, how, id) {
+  spark = JSON.parse(JSON.stringify(s)); savedId = id || null; history = [];
+  values = {}; spark.variables.forEach(v => (values[v.id] = v.start));
+  active = null; changed = null; particles.length = 0;
+  $("play-title").textContent = spark.title; $("play-intro").textContent = spark.intro;
+  $("challenge").textContent = spark.challenge;
+  $("play-eyebrow").textContent = how === "sample" ? "Sample Spark · Play" : "Step 3 of 5 · Play";
+  renderKnobs(); refreshRecipe(); setCaption(spark.idleCaption);
+  show("play");
+}
+function refreshRecipe() { $("recipe").textContent = JSON.stringify(spark, null, 2); }
+function renderKnobs() {
+  const box = $("knobs"); box.textContent = "";
+  spark.variables.forEach((v, i) => {
+    const d = document.createElement("div"); d.className = "knob";
+    d.innerHTML = `<span class="tag">KNOB ${i + 1}</span><div class="dial" aria-hidden="true"><i></i></div>
+      <label class="name" for="k-${v.id}"></label><span class="val"></span>
+      <input type="range" id="k-${v.id}" min="0" max="100" step="1">`;
+    d.querySelector(".name").textContent = v.label;
+    const inp = d.querySelector("input"); inp.value = values[v.id];
+    inp.addEventListener("input", () => setValue(v.id, +inp.value));
+    box.append(d); paintKnob(v.id);
+  });
+  const t = document.createElement("button"); t.type = "button"; t.className = "ignite-tile"; t.id = "ignite-play";
+  t.innerHTML = `<span class="tag">IGNITE</span><svg viewBox="0 0 168 120" aria-hidden="true"><rect x="4" y="96" width="160" height="20" rx="10" fill="#1B2A4A"/><path d="M12 98 A72 72 0 0 1 156 98 Z" fill="#FF7A1A"/><path d="M118 18 L122 30 L134 34 L122 38 L118 50 L114 38 L102 34 L114 30 Z" fill="#FFD23F"/></svg><span class="name"></span>`;
+  t.querySelector(".name").textContent = spark.ignite;
+  t.onclick = igniteAgain; box.append(t);
+}
+function paintKnob(id) {
+  const inp = $("k-" + id); if (!inp) return; const d = inp.closest(".knob");
+  d.querySelector(".dial i").style.setProperty("--a", (-135 + values[id] * 2.7) + "deg");
+  d.querySelector(".val").textContent = values[id] + " / 100"; inp.value = values[id];
+}
+function setValue(id, val) {
+  values[id] = Math.max(0, Math.min(100, val)); paintKnob(id); changed = id; evaluate();
+}
+function matches(r) { return r.when.every(c => (c.op === ">" ? values[c.knob] > c.value : values[c.knob] < c.value)); }
+function evaluate() {
+  const r = spark.reactions.find(matches) || null;
+  if (r !== active) { active = r; if (r) startReaction(r); }
+  const tag = $("reaction-tag");
+  if (r) { tag.hidden = false; tag.textContent = r.name; setCaption(r.caption); return; }
+  tag.hidden = true;
+  if (changed) { const v = spark.variables.find(x => x.id === changed); const val = values[changed];
+    setCaption(val >= 60 ? `${v.label} is high. ${v.highText}` : val <= 40 ? `${v.label} is low. ${v.lowText}` : `${v.label} is in the middle. Keep turning to see what changes.`); }
+}
+let capTimer = null;
+function setCaption(t) { clearTimeout(capTimer); capTimer = setTimeout(() => { if ($("caption").textContent !== t) $("caption").textContent = t; }, 120); }
+function igniteAgain() { if (!sample) { toast("Ignite needs Claude. Open this on claude.ai to make new versions."); return; }
+  generate(spark.topic, JSON.stringify({ title: spark.title, subject: spark.subject, reactions: spark.reactions.map(r => r.name) })); }
+
+document.addEventListener("keydown", e => {
+  if ($("view-play").hidden && $("view-remix").hidden) return;
+  if (e.target.matches("input[type=text], textarea, select, input[type=number]")) return;
+  const map = { q: ["knob1", 5], a: ["knob1", -5], w: ["knob2", 5], s: ["knob2", -5], e: ["knob3", 5], d: ["knob3", -5] };
+  const k = map[e.key.toLowerCase()];
+  if (k && spark) { e.preventDefault(); setValue(k[0], values[k[0]] + k[1]); }
+  else if (e.key === " " && !$("view-play").hidden && !e.target.matches("button, input")) { e.preventDefault(); igniteAgain(); }
+});
+
+/* ---------- Scene engine ---------- */
+const cv = $("scene"), cx = cv.getContext("2d"); const W = 880, H = 520;
+function fit() { const r = cv.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (!r.width) return; cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); cx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0); }
+new ResizeObserver(fit).observe(cv);
+const particles = []; let fx = { t: 0, grow: 1, spin: 0, freeze: 0 };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function rgb(h) { return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
+function mix(a, b, t) { const A = rgb(a), B = rgb(b); return `rgb(${A.map((x, i) => Math.round(x + (B[i] - x) * t)).join(",")})`; }
+function eff(name) { const v = spark.variables.find(x => x.effect === name); return v ? values[v.id] / 100 : null; }
+function startReaction(r) { fx.t = 0; }
+function emit(x, y, kind, col, n, spread, up) {
+  for (let i = 0; i < n && particles.length < 500; i++) particles.push({ x: x + (Math.random() - .5) * spread, y, vx: (Math.random() - .5) * (kind === "burst" ? 7 : 1.2),
+    vy: -(up * (0.6 + Math.random())), life: 1, kind, col, r: kind === "burst" ? 4 + Math.random() * 6 : 6 + Math.random() * 10 });
+}
+function ground(setting) {
+  const s = setting;
+  if (s === "island" || s === "ocean") { cx.fillStyle = "#2F6FED"; cx.fillRect(0, 400, W, 120);
+    if (s === "island") { cx.fillStyle = "#FFD9C2"; cx.beginPath(); cx.ellipse(440, 410, 360, 52, 0, 0, Math.PI * 2); cx.fill(); } }
+  else if (s === "garden") { cx.fillStyle = "#7CC47F"; cx.fillRect(0, 410, W, 110); cx.fillStyle = "#5FAF67"; cx.fillRect(0, 410, W, 10); }
+  else if (s === "kitchen" || s === "lab") { cx.fillStyle = s === "lab" ? "#CFD6E4" : "#E9B98F"; cx.fillRect(0, 420, W, 100); cx.fillStyle = "#33415C"; cx.fillRect(0, 418, W, 6); }
+  else if (s === "space") { cx.fillStyle = "#FFFFFF"; for (let i = 0; i < 60; i++) { const x = (i * 137) % W, y = (i * 89) % H; cx.globalAlpha = .4 + (i % 5) / 10; cx.fillRect(x, y, 2, 2); } cx.globalAlpha = 1; }
+  else if (s === "sky") { cx.fillStyle = "rgba(255,255,255,.7)"; [[150,120,40],[190,110,50],[700,160,36],[740,150,44]].forEach(([x,y,r]) => { cx.beginPath(); cx.arc(x,y,r,0,7); cx.fill(); }); }
+}
+function subjectTop(shape, sc) {
+  const base = { mountain: 160, plant: 410 - 250 * sc, cloud: 160, pot: 280, planet: 260 - 110 * sc, creature: 300, flask: 220 }[shape];
+  return base ?? 200;
+}
+function drawSubject(sb, sc, heat, t) {
+  const c = mix(sb.color, sb.hotColor, eff("color") ?? 0), hot = sb.hotColor;
+  cx.save();
+  const baseY = { mountain: 410, plant: 415, cloud: 230, pot: 420, planet: 260, creature: 410, flask: 420 }[sb.shape];
+  cx.translate(440, baseY); cx.scale(sc, sc);
+  if (fx.spinOn) cx.rotate(Math.sin(t * 3) * .25);
+  if (sb.shape === "mountain") {
+    cx.fillStyle = c; cx.beginPath(); cx.moveTo(-250, 0); cx.lineTo(-55, -250); cx.lineTo(55, -250); cx.lineTo(250, 0); cx.closePath(); cx.fill();
+    cx.fillStyle = mix(sb.color, "#000000", .2); cx.beginPath(); cx.moveTo(-55, -250); cx.lineTo(55, -250); cx.lineTo(42, -228); cx.lineTo(-42, -228); cx.fill();
+    cx.fillStyle = mix("#7A3A1A", hot, heat); cx.beginPath(); cx.ellipse(0, -249, 52, 11, 0, 0, 7); cx.fill();
+  } else if (sb.shape === "plant") {
+    cx.strokeStyle = "#3FA36B"; cx.lineWidth = 12; cx.lineCap = "round"; cx.beginPath(); cx.moveTo(0, 0); cx.quadraticCurveTo(20, -120, 0, -240); cx.stroke();
+    cx.fillStyle = "#3FA36B"; [[-1,-90],[1,-150]].forEach(([d,y]) => { cx.beginPath(); cx.ellipse(d * 40, y, 44, 16, d * -.5, 0, 7); cx.fill(); });
+    cx.fillStyle = hot; for (let i = 0; i < 8; i++) { cx.beginPath(); cx.ellipse(Math.cos(i * .785) * 34, -250 + Math.sin(i * .785) * 34, 22, 12, i * .785, 0, 7); cx.fill(); }
+    cx.fillStyle = c; cx.beginPath(); cx.arc(0, -250, 24, 0, 7); cx.fill();
+  } else if (sb.shape === "cloud") {
+    cx.fillStyle = c; [[-110,10,70],[-30,-30,95],[70,-10,80],[140,20,55],[0,30,80]].forEach(([x,y,r]) => { cx.beginPath(); cx.arc(x, y, r, 0, 7); cx.fill(); });
+    cx.fillStyle = hot; cx.globalAlpha = .25 + heat * .6; cx.beginPath(); cx.arc(-30, -20, 50, 0, 7); cx.fill(); cx.globalAlpha = 1;
+  } else if (sb.shape === "pot") {
+    const fl = 0.3 + heat; cx.fillStyle = "#FF7A1A"; for (let i = -2; i <= 2; i++) { cx.beginPath(); cx.moveTo(i * 36 - 16, 0); cx.quadraticCurveTo(i * 36, -60 * fl - Math.sin(t * 8 + i) * 8, i * 36 + 16, 0); cx.fill(); }
+    cx.fillStyle = "#FFD23F"; for (let i = -2; i <= 2; i++) { cx.beginPath(); cx.moveTo(i * 36 - 8, 0); cx.quadraticCurveTo(i * 36, -30 * fl, i * 36 + 8, 0); cx.fill(); }
+    cx.fillStyle = c; cx.beginPath(); cx.moveTo(-150, -150); cx.lineTo(150, -150); cx.lineTo(130, -20); cx.quadraticCurveTo(0, 0, -130, -20); cx.closePath(); cx.fill();
+    cx.fillStyle = mix(sb.color, "#000000", .25); cx.fillRect(-165, -165, 330, 20); cx.fillRect(-200, -140, 40, 14); cx.fillRect(160, -140, 40, 14);
+  } else if (sb.shape === "planet") {
+    cx.rotate(-0.2); cx.fillStyle = c; cx.beginPath(); cx.arc(0, 0, 110, 0, 7); cx.fill();
+    cx.save(); cx.beginPath(); cx.arc(0, 0, 110, 0, 7); cx.clip(); cx.fillStyle = mix(sb.color, hot, .45); const off = (t * 40 * (0.3 + (eff("speed") ?? .3) * 2)) % 80;
+    for (let y = -120; y < 140; y += 40) cx.fillRect(-120, y + off - 40, 240, 14); cx.restore();
+    cx.strokeStyle = hot; cx.lineWidth = 10; cx.beginPath(); cx.ellipse(0, 0, 180, 36, 0, Math.PI, 2 * Math.PI); cx.stroke(); cx.beginPath(); cx.ellipse(0, 0, 180, 36, 0, 0, Math.PI); cx.stroke();
+  } else if (sb.shape === "flask") {
+    cx.fillStyle = "rgba(255,255,255,.85)"; cx.strokeStyle = "#1B2A4A"; cx.lineWidth = 6;
+    cx.beginPath(); cx.moveTo(-30, -220); cx.lineTo(-30, -130); cx.lineTo(-120, 0); cx.lineTo(120, 0); cx.lineTo(30, -130); cx.lineTo(30, -220); cx.closePath(); cx.fill();
+    cx.save(); cx.clip(); cx.fillStyle = mix(sb.color, hot, heat); cx.fillRect(-130, -90 - heat * 40, 260, 140); cx.restore(); cx.stroke();
+  } else { // creature
+    const bob = Math.sin(t * 3) * 6; cx.fillStyle = c; cx.beginPath(); cx.ellipse(0, -110 + bob, 130, 110, 0, 0, 7); cx.fill();
+    cx.fillStyle = "#FFFFFF"; [-45, 45].forEach(x => { cx.beginPath(); cx.arc(x, -140 + bob, 26, 0, 7); cx.fill(); });
+    cx.fillStyle = "#1B2A4A"; [-40, 50].forEach(x => { cx.beginPath(); cx.arc(x, -136 + bob, 12, 0, 7); cx.fill(); });
+    cx.strokeStyle = "#1B2A4A"; cx.lineWidth = 6; cx.beginPath(); cx.arc(0, -90 + bob, 30, .2, Math.PI - .2); cx.stroke();
+    cx.fillStyle = hot; cx.beginPath(); cx.ellipse(-80, -10 + bob, 30, 14, 0, 0, 7); cx.ellipse(80, -10 + bob, 30, 14, 0, 0, 7); cx.fill();
+  }
+  cx.restore();
+}
+let last = performance.now(), T = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (spark && !document.hidden) {
+    const speed = 0.4 + (eff("speed") ?? 0.3) * 2.2; const fr = active && active.effect === "freeze";
+    T += dt * (fr ? 0.2 : speed) * (reduce ? 0.3 : 1); fx.t += dt;
+    const sc = spark.scene, sb = spark.subject;
+    const sizeV = eff("size"); let scale = 0.75 + (sizeV ?? 0.5) * 0.5;
+    const target = active ? (active.effect === "grow" ? 1.3 : active.effect === "shrink" ? 0.65 : 1) : 1;
+    fx.grow += (target - fx.grow) * Math.min(1, dt * 4); scale *= fx.grow;
+    fx.spinOn = active && active.effect === "spin";
+    let shake = (eff("shake") ?? 0) * 5 + (active && (active.effect === "shake" || active.effect === "burst") ? 7 : 0);
+    if (reduce) shake = Math.min(shake, 1.5);
+    cx.save(); cx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake);
+    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, sc.skyTop); g.addColorStop(1, sc.skyBottom);
+    cx.fillStyle = g; cx.fillRect(-10, -10, W + 20, H + 20);
+    if (sc.setting !== "space") { cx.fillStyle = "#FFD23F"; cx.beginPath(); cx.arc(770, 80, 38, 0, 7); cx.fill(); }
+    ground(sc.setting);
+    const heat = eff("glow") ?? (eff("color") ?? 0.3);
+    const topY = { mountain: 410 - 250 * scale, plant: 415 - 250 * scale, cloud: 230 - 60 * scale, pot: 420 - 160 * scale, planet: 260 - 110 * scale, creature: 410 - 220 * scale, flask: 420 - 220 * scale }[sb.shape];
+    // glow
+    const gl = eff("glow"); if (gl) { const rg = cx.createRadialGradient(440, topY + 40, 10, 440, topY + 40, 120 + gl * 220);
+      rg.addColorStop(0, sb.hotColor + Math.round(gl * 180).toString(16).padStart(2, "0")); rg.addColorStop(1, sb.hotColor + "00"); cx.fillStyle = rg; cx.fillRect(0, 0, W, H); }
+    drawSubject(sb, scale, heat, T);
+    // continuous particles
+    const pv = eff("particles"); if (pv && Math.random() < pv * 0.9) emit(440, topY, sc.particle, sc.particleColor, 1, 60 * scale, 1.2 + pv);
+    // reactions
+    if (active) {
+      const rc = active.color, e = active.effect;
+      if (e === "burst") { emit(440, topY, "burst", rc, 6, 50, 9); if (Math.random() < .5) emit(440, topY, "burst", "#FFD23F", 2, 30, 7); }
+      if (e === "smoke") emit(440, topY, "smoke", "#9AA3B5", 2, 80, 2);
+      if (e === "rain") for (let i = 0; i < 4; i++) particles.length < 500 && particles.push({ x: Math.random() * W, y: -10, vx: -1, vy: 10, life: 1, kind: "rain", col: rc, r: 2 });
+      if (e === "sparkle" && Math.random() < .6) particles.push({ x: 440 + (Math.random() - .5) * 360 * scale, y: topY + Math.random() * 220, vx: 0, vy: -.3, life: 1, kind: "star", col: rc, r: 10 });
+      if (e === "grow" && Math.random() < .3) particles.push({ x: 440 + (Math.random() - .5) * 300, y: topY + Math.random() * 200, vx: 0, vy: -.4, life: 1, kind: "star", col: "#FFD23F", r: 8 });
+      if (e === "freeze") { cx.fillStyle = "rgba(214,235,255,.45)"; cx.fillRect(-10, -10, W + 20, H + 20); if (Math.random() < .5) particles.push({ x: Math.random() * W, y: -10, vx: .3, vy: 1.4, life: 1, kind: "snow", col: "#FFFFFF", r: 4 }); }
+      if (e === "burst" && sb.shape === "mountain") { cx.strokeStyle = rc; cx.lineCap = "round"; cx.lineWidth = 12 * scale; const k = Math.min(1, fx.t / 1.5);
+        cx.beginPath(); cx.moveTo(420, topY + 8); cx.quadraticCurveTo(380, topY + 120 * k, 300, topY + 230 * k * scale); cx.stroke();
+        cx.beginPath(); cx.moveTo(462, topY + 8); cx.quadraticCurveTo(500, topY + 140 * k, 560, topY + 240 * k * scale); cx.stroke(); }
+    }
+    // draw particles
+    for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i];
+      p.x += p.vx * speed * 60 * dt; p.y += p.vy * speed * 60 * dt;
+      if (p.kind === "burst") p.vy += 0.25 * speed * 60 * dt;
+      p.life -= dt * (p.kind === "rain" ? .6 : p.kind === "burst" ? .6 : .45);
+      if (p.life <= 0 || p.y > H + 20) { particles.splice(i, 1); continue; }
+      cx.globalAlpha = Math.max(0, Math.min(1, p.life)); cx.fillStyle = p.col; cx.strokeStyle = p.col;
+      if (p.kind === "rain") { cx.lineWidth = 3; cx.beginPath(); cx.moveTo(p.x, p.y); cx.lineTo(p.x - 3, p.y + 14); cx.stroke(); }
+      else if (p.kind === "star" || p.kind === "sparks" || p.kind === "stars") { const r = p.r * (p.kind === "star" ? 1 : .6); cx.beginPath();
+        for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, rr = k % 2 ? r * .35 : r; cx.lineTo(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); } cx.fill(); }
+      else if (p.kind === "bubbles") { cx.lineWidth = 3; cx.beginPath(); cx.arc(p.x, p.y, p.r * .6, 0, 7); cx.stroke(); }
+      else if (p.kind === "leaves") { cx.beginPath(); cx.ellipse(p.x, p.y, p.r * .7, p.r * .3, p.y / 30, 0, 7); cx.fill(); }
+      else { const grow = p.kind === "smoke" || p.kind === "steam" ? (1.6 - p.life) : 1; cx.beginPath(); cx.arc(p.x, p.y, p.r * grow, 0, 7); cx.fill(); }
+    }
+    cx.globalAlpha = 1; cx.restore();
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- Remix ---------- */
+function snapshot() { history.push(JSON.stringify(spark)); if (history.length > 30) history.shift(); }
+function applyEdit(fn) { snapshot(); fn(); refreshRecipe(); $("play-title").textContent = spark.title; active = null; evaluate(); }
+$("r-title").addEventListener("change", e => applyEdit(() => (spark.title = str(e.target.value, 48, spark.title))));
+function sel(options, value, label) { const s = document.createElement("select"); s.setAttribute("aria-label", label);
+  for (const [v, t] of options) { const o = document.createElement("option"); o.value = v; o.textContent = t; s.append(o); } s.value = value; return s; }
+function renderRules() {
+  $("r-title").value = spark.title;
+  const box = $("rules"); box.textContent = "";
+  const knobOpts = spark.variables.map(v => [v.id, v.label]);
+  spark.reactions.forEach((r, ri) => {
+    const d = document.createElement("div"); d.className = "rule";
+    const top = document.createElement("div"); top.className = "rule-top";
+    const nm = document.createElement("strong"); nm.textContent = r.name; top.append(nm);
+    const del = document.createElement("button"); del.type = "button"; del.className = "btn small"; del.textContent = "Remove";
+    del.onclick = () => { if (spark.reactions.length < 2) { toast("A Spark needs at least one rule."); return; } applyEdit(() => spark.reactions.splice(ri, 1)); renderRules(); };
+    top.append(del); d.append(top);
+    r.when.forEach((c, ci) => {
+      const line = document.createElement("div"); line.className = "rule-line";
+      line.append(ci === 0 ? "When" : "and");
+      const k = sel(knobOpts, c.knob, "Knob"); k.onchange = () => applyEdit(() => (c.knob = k.value));
+      const op = sel([[">", "is above"], ["<", "is below"]], c.op, "Above or below"); op.onchange = () => applyEdit(() => (c.op = op.value));
+      const n = document.createElement("input"); n.type = "number"; n.min = 1; n.max = 99; n.value = c.value; n.setAttribute("aria-label", "Value");
+      n.onchange = () => applyEdit(() => (c.value = num(n.value, 1, 99, c.value)));
+      line.append(k, op, n); d.append(line);
+    });
+    const then = document.createElement("div"); then.className = "rule-line"; then.append("then it will");
+    const ef = sel(REACTIONS.map(x => [x, EFFECT_WORDS[x]]), r.effect, "What happens"); ef.onchange = () => applyEdit(() => (r.effect = ef.value));
+    then.append(ef);
+    if (r.when.length < 3) { const more = document.createElement("button"); more.type = "button"; more.className = "linkish"; more.textContent = "+ and…";
+      more.onclick = () => { applyEdit(() => r.when.push({ knob: "knob2", op: ">", value: 50 })); renderRules(); }; then.append(more); }
+    d.append(then);
+    const cap = document.createElement("input"); cap.type = "text"; cap.className = "cap"; cap.value = r.caption; cap.maxLength = 160; cap.setAttribute("aria-label", "What the caption says");
+    cap.onchange = () => applyEdit(() => (r.caption = str(cap.value, 160, r.caption))); d.append(cap);
+    box.append(d);
+  });
+}
+$("add-rule").onclick = () => { if (spark.reactions.length >= 5) { toast("Five rules is the most for now."); return; }
+  applyEdit(() => spark.reactions.push({ name: "My rule", effect: "sparkle", color: "#FFD23F", when: [{ knob: "knob3", op: ">", value: 80 }], caption: "You made a new rule! Something sparkles." })); renderRules(); };
+$("undo").onclick = () => { const p = history.pop(); if (!p) { toast("Nothing to undo."); return; } spark = JSON.parse(p); refreshRecipe(); $("play-title").textContent = spark.title; active = null; evaluate(); renderRules(); };
+$("go-remix").onclick = () => show("remix");
+$("back-play").onclick = () => { renderKnobs(); $("challenge").textContent = spark.challenge; show("play"); };
+$("ai-go").onclick = async () => {
+  const ask = $("ai-ask").value.trim(); if (!ask) { $("ai-ask").focus(); return; }
+  if (!sample) { $("ai-status").textContent = "Claude isn't available here, but you can still change the rules above."; return; }
+  $("ai-go").disabled = true; $("ai-status").textContent = "Claude is changing your Spark…";
+  try { const raw = await sample.json(remixPrompt(spark, ask), { modelTier: "default" });
+    if (raw && raw.redirect) { $("ai-status").textContent = str(raw.redirect.message, 200, "Let's try a different change."); return; }
+    const next = normalize(raw); next.topic = spark.topic;
+    applyEdit(() => { spark = next; }); spark.variables.forEach(v => { if (!(v.id in values)) values[v.id] = v.start; });
+    renderRules(); renderKnobs(); $("ai-status").textContent = "Done. Turn the knobs to test it."; $("ai-ask").value = "";
+  } catch (e) { $("ai-status").textContent = e && e.code === "rate_limited" ? "Claude needs a short break. Try again in a minute." : "That change didn't fit the journey. Try saying it another way."; }
+  finally { $("ai-go").disabled = false; }
+};
+
+/* ---------- My Sparks (saved per person) ---------- */
+const LOCAL = "spark.mysparks";
+function coll() { return db && uid ? db.collection("data/users/" + uid) : null; }
+$("save").onclick = async () => {
+  const id = savedId || "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const doc = { title: spark.title, topic: spark.topic, savedAt: Date.now(), spark: JSON.parse(JSON.stringify(spark)) };
+  $("save").disabled = true;
+  try {
+    const c = coll();
+    if (c) await c.doc(id).set(doc);
+    else { const all = (store.get(LOCAL) || []).filter(x => x.id !== id); all.unshift({ id, ...doc }); store.set(LOCAL, all.slice(0, 50)); }
+    savedId = id; toast("Saved to My Sparks"); $("reflect").hidden = false; show("mine");
+  } catch (e) { toast(e && e.code === "quota_exceeded" ? "My Sparks is full. Delete one to make room." : "Couldn't save just now. Try again."); }
+  finally { $("save").disabled = false; }
+};
+async function loadMine() {
+  const cards = $("cards"); cards.textContent = ""; let list = [];
+  const c = coll();
+  $("mine-where").textContent = c ? "Saved to your account, so they're here whenever you open Spark Studio." : "Saved in this browser only.";
+  try {
+    if (c) { const snap = await c.orderBy("savedAt", "desc").limit(50).get(); list = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    else list = store.get(LOCAL) || [];
+  } catch { list = store.get(LOCAL) || []; }
+  list = list.filter(x => x && x.spark);
+  $("mine-empty").hidden = list.length > 0;
+  for (const item of list) {
+    const d = document.createElement("article"); d.className = "card";
+    let s; try { s = normalize(item.spark); } catch { continue; }
+    d.innerHTML = `<div class="swatch"></div><h3></h3><p class="meta"></p><div class="row"><button class="btn small primary" type="button">Play</button><button class="btn small" type="button">Delete</button></div>`;
+    d.querySelector(".swatch").style.background = `linear-gradient(${s.scene.skyTop}, ${s.scene.skyBottom} 60%, ${s.subject.color} 60%)`;
+    d.querySelector("h3").textContent = s.title;
+    d.querySelector(".meta").textContent = `${s.topic} · ${new Date(item.savedAt || Date.now()).toLocaleDateString()}`;
+    const [play, del] = d.querySelectorAll("button");
+    play.onclick = () => loadSpark(s, "saved", item.id);
+    let armed = false;
+    del.onclick = async () => { if (!armed) { armed = true; del.textContent = "Sure? Delete"; setTimeout(() => { armed = false; del.textContent = "Delete"; }, 3000); return; }
+      try { if (c) await c.doc(item.id).delete(); else store.set(LOCAL, (store.get(LOCAL) || []).filter(x => x.id !== item.id)); d.remove(); if (!cards.children.length) $("mine-empty").hidden = false; }
+      catch { toast("Couldn't delete just now."); } };
+    cards.append(d);
+  }
+}
+
+/* ---------- Header ---------- */
+$("home").onclick = () => show("ask");
+$("restart").onclick = () => { if (abort) abort.abort(); note(""); show("ask"); };
+$("go-mine").onclick = () => { $("reflect").hidden = true; show("mine"); };
+$("new-spark").onclick = () => show("ask");
+$("bigger").onclick = () => { const on = document.documentElement.classList.toggle("bigger"); $("bigger").setAttribute("aria-pressed", on); store.set("spark.bigger", on); };
+if (store.get("spark.bigger")) { document.documentElement.classList.add("bigger"); $("bigger").setAttribute("aria-pressed", "true"); }
+$("copy-recipe").onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(spark, null, 2)); toast("Recipe copied"); }
+  catch { const r = document.createRange(); r.selectNodeContents($("recipe")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Selected. Press Ctrl+C or Cmd+C to copy."); } };
+
+/* ---------- Start: open on the sample so the first view shows what it does ---------- */
+loadSpark(SAMPLE, "sample"); show("ask");
+(async () => {
+  if (!window.claude || !window.claude.use) { note("<strong>Claude isn't available here.</strong>Open this page on claude.ai to make your own Sparks. You can still play the sample volcano.", true); return; }
+  const [s, d, u] = await Promise.all([claude.use("sample"), claude.use("db"), claude.use("user")]);
+  sample = s; db = d; user = u;
+  if (u) { try { uid = await u.id(); } catch { uid = null; } }
+  if (!sample && !$("view-ask").hidden) note("<strong>Claude isn't available here.</strong>Open this page on claude.ai to make your own Sparks. You can still play the sample volcano.", true);
+})();
+})();
+</script>

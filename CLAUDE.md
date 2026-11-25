@@ -6,21 +6,29 @@ This repo holds Spark, Declan's capstone (ATLS 4519, CU Boulder). Read the proje
 
 | Folder | What it is |
 | --- | --- |
+| `studio/` | Spark Studio, the real build (Vite + plain JS, started Nov 25, 2026). Screens in `studio/src/screens/`, journeys in `studio/src/journeys/`. |
+| `shared/` | Used by both the studio and the server: Spark format, journeys list, Change It behavior menu, AI prompts/schemas, offline mode. |
+| `functions/api/` | Cloudflare Pages Functions that call Claude (`rank`, `draft`, `health`). `server/claude.js` holds the one Claude call. |
+| `tests/` | `npm test` (node:test). |
 | `docs/` | The Spark documentation site (moved from `Senior_Projects/spark-site`). Plain HTML/CSS/JS, no build step. Section text lives in `docs/content/docs/*.md`. |
-| `studio/` | Spark Studio. `studio/index.html` is the Change It journey prototype (Nov 16, 2026). |
+| `prototype/` | The Nov 16 Change It prototype (`window.claude` artifact runtime), kept for reference. |
+
+Run: `npm install`, then `npm run dev` (offline mode without a key; put `ANTHROPIC_API_KEY` in `.dev.vars` for AI drafting).
 
 ## Working rules
 
 - Never call Spark an "app". It is a creative toolkit / studio.
 - Journeys are coded frameworks. The AI fills in content and presentation and picks behaviors from a coded menu; it never writes game mechanics.
 - Build journeys on open source engines (Tone.js/Strudel, Twine, Matter.js, p5.js, Phaser + Tiled, Blockly) rather than from scratch.
-- The prototype calls `window.claude` (the claude.ai artifact runtime). Outside claude.ai that call needs a replacement, such as a small serverless function that calls the Claude API. Never put an API key in front-end code.
+- AI calls go through `functions/api/*` (server side). Never put an API key in front-end code. The old prototype in `prototype/` still uses `window.claude`.
+- The AI only returns JSON matching schemas built from each journey's menu (`shared/<journey>/menu.js`), and `normalize` re-checks it. New behaviors are added to the menu and the drawing code, never generated.
 - Planned hosting: Cloudflare Pages. Planned data: Supabase.
 - Never invent what Prof. Aaron Neyer said in graded work.
 
 ## Status since the brief
 
-- Nov 16, 2026: working Change It prototype (`studio/index.html`). Next: test 15 to 20 topics, tune the behavior menu, then deploy to Cloudflare around early December.
+- Nov 16, 2026: working Change It prototype (now `prototype/change-it-v0.html`). Next: test 15 to 20 topics, tune the behavior menu, then deploy to Cloudflare around early December.
+- Nov 25, 2026: Spark Studio scaffold in `studio/`: Ask (topic + journey chips), AI ranking of all five journeys, Ranked, Try another topic, Change It end to end (p5.js), Remix form, Today's Sparks, Take it home (share code + QR link), next-explorer handoff with 2-minute idle reset, Spark-Plug gamepad + keyboard input, offline mode. Other four journeys show "coming soon".
 - Goal: the digital side running by the end of fall 2026; the Spark-Plug controller next semester.
 
 ---
