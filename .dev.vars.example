@@ -1,0 +1,6 @@
+# Copy this file to .dev.vars and paste your key. .dev.vars is git-ignored.
+# Get a key at https://console.anthropic.com (Settings > API keys).
+ANTHROPIC_API_KEY=
+# Optional
+# SPARK_MODEL=claude-opus-5-5
+# SPARK_EFFORT=low

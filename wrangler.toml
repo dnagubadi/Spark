@@ -1,0 +1,7 @@
+# Cloudflare Pages settings. `npm run preview:cf` runs the built studio plus
+# functions/ exactly as Cloudflare will. Secrets (ANTHROPIC_API_KEY) go in
+# .dev.vars locally and in the Pages dashboard for the live site.
+name = "spark-studio"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]

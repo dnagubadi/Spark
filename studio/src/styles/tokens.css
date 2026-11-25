@@ -1,0 +1,50 @@
+/* Spark Studio design tokens, from the "Foundations" board in the design canvas.
+   Bright orange and blue never sit behind text. Body text never goes under 18px. */
+
+:root {
+  --navy: #1b2a4a;   /* text, main buttons */
+  --ink: #33415c;    /* secondary text, lines */
+  --cream: #fff6ea;  /* page background */
+  --peach: #ffd9c2;  /* cards, choices */
+  --sky: #d6ebff;    /* things the AI made */
+  --orange: #ff7a1a; /* Ignite, logo. Never behind text */
+  --blue: #2f6fed;   /* logo, links. Never behind text */
+  --yellow: #ffd23f; /* spark, focus ring */
+  --white: #ffffff;
+  --line: #f0dccb;   /* soft borders */
+  --ember: #a33a12;  /* warm accent text, 6.4:1 on white */
+  --stage: #ffe9da;  /* behind the thing you shape */
+  --metal-dark: #0f1a30;
+
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  --text-xs: 0.875rem;  /* 14px: eyebrow labels only (bold, letter-spaced) */
+  --text-sm: 1.125rem;  /* 18px: smallest body text */
+  --text-md: 1.25rem;   /* 20px: body */
+  --text-lg: 1.5rem;
+  --text-xl: 2rem;
+  --text-2xl: 3rem;
+  --text-3xl: 4.5rem;
+
+  --radius-sm: 0.75rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.375rem;
+  --radius-xl: 1.75rem;
+  --pill: 999px;
+
+  --tap: 3rem;          /* 48px minimum */
+  --tap-lg: 3.5rem;     /* 56px standard */
+  --gutter: clamp(1rem, 3.3vw, 3rem);
+
+  --press: 0 3px 0 #d9c9b8;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* "Bigger text" toggle: everything is in rem, so this scales the whole studio. */
+html[data-big="true"] { font-size: 118.75%; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
